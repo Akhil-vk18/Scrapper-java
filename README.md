@@ -1,56 +1,50 @@
 # Job Portal Scraper - Java Implementation
 
-A robust web scraper built in Java designed to extract job listings and employment data from various job portals. This project demonstrates best practices in web scraping, data extraction, and Java development.
+A Spring Boot-based web scraper that extracts job listings from various job portals and stores them in a MySQL database. This is a **sub-project of a larger Job Portal application**, designed to continuously scrape and populate job data that the main job portal can fetch and display to users.
 
 ## 📋 Project Overview
 
-The Job Portal Scraper is a Java-based application that automates the collection of job postings from multiple job portals. It processes and structures the extracted data for analysis, reporting, and integration with other systems.
+The Job Portal Scraper is a Spring Boot application that automates the collection of job postings from job portals (currently focusing on Infopark). It scrapes job data, processes it, and stores it in a MySQL database where the main Job Portal application can access it for displaying job listings to end users.
 
 ### Key Features
 
-- **Multi-Portal Support**: Scrape data from multiple job portal sources
-- **Efficient Data Extraction**: Extract structured job information including titles, companies, locations, and descriptions
-- **Data Processing**: Transform raw HTML/JSON data into organized, queryable formats
-- **Error Handling**: Robust error management and retry mechanisms
-- **Logging**: Comprehensive logging for monitoring and debugging
-- **Configurable Settings**: Easy configuration for different job portals and scraping parameters
+- **Automated Job Scraping**: Automatically scrapes job listings from Infopark job portal
+- **Database Storage**: Stores scraped job data in MySQL database using Spring Data JPA
+- **Spring Boot Integration**: Built with Spring Boot for easy deployment and configuration
+- **Job Portal Integration**: Designed as a backend service for the main Job Portal application
+- **Structured Data Model**: Clean job data model with JPA entities for database persistence
+- **Continuous Operation**: Runs as a CommandLineRunner on application startup
 
 ## 🚀 Current Implementation Status
 
-### ✅ Completed Components
+### ✅ Implemented Components
 
-- Basic project structure and Maven/Gradle configuration
-- Web scraping framework setup with HTTP client libraries
-- HTML parsing and data extraction utilities
-- Core job data model classes
-- Logging infrastructure
+- **Spring Boot Application**: Fully configured Spring Boot 4.0 application
+- **Infopark Scraper**: Active scraper for Infopark job portal (https://infopark.in/companies/job-search)
+- **Database Integration**: MySQL database connection with Spring Data JPA
+- **Job Entity Model**: Complete job data model with fields:
+  - Job title, company name, requirements, experience, location
+  - Posted date, deadline, apply link
+- **JPA Repository**: JobRepo interface for database operations
+- **Auto-execution**: Scraper runs automatically on application startup using CommandLineRunner
 
-### 🔄 In Progress
+### 📝 Job Portal Integration
 
-- Multi-portal scraper implementations
-- Advanced data filtering and search capabilities
-- Performance optimization for large-scale scraping
-- Unit and integration test coverage
-- Documentation and usage examples
-
-### 📝 Planned Features
-
-- Database integration for persistent storage
-- Real-time notification system for new job postings
-- Advanced analytics and reporting dashboard
-- REST API for accessing scraped data
-- Caching mechanisms to improve performance
-- Proxy support for distributed scraping
+This scraper serves as a **data collection service** for the main Job Portal application:
+1. Scraper runs and collects job data from supported portals
+2. Data is stored in the shared MySQL database (`jobportal` database)
+3. Main Job Portal application fetches this data to display to users
+4. Both applications connect to the same database for seamless data sharing
 
 ## 🛠️ Technology Stack
 
-- **Language**: Java 8+
-- **Build Tool**: Maven/Gradle
-- **HTTP Client**: OkHttp/HttpClient
-- **HTML Parsing**: Jsoup/HtmlUnit
-- **Logging**: SLF4J + Logback
-- **Testing**: JUnit 5, Mockito
-- **Database** (Planned): MySQL/PostgreSQL
+- **Language**: Java 21
+- **Framework**: Spring Boot 4.0.0
+- **Database**: MySQL 8.0+
+- **ORM**: Spring Data JPA with Hibernate
+- **HTML Parsing**: Jsoup 1.21.2
+- **Build Tool**: Maven
+- **Utilities**: Lombok for boilerplate code reduction
 
 ## 📦 Project Structure
 
@@ -58,28 +52,30 @@ The Job Portal Scraper is a Java-based application that automates the collection
 Scrapper-java/
 ├── src/
 │   ├── main/
-│   │   ├── java/
-│   │   │   ├── models/           # Data model classes
-│   │   │   ├── scrapers/         # Portal-specific scraper implementations
-│   │   │   ├── parsers/          # HTML/JSON parsing utilities
-│   │   │   ├── clients/          # HTTP client implementations
-│   │   │   └── utils/            # Helper and utility classes
+│   │   ├── java/com/scraper/jobportal/jobportal_scraper/
+│   │   │   ├── JobportalScraperApplication.java  # Main Spring Boot application
+│   │   │   ├── model/
+│   │   │   │   └── Jobs.java                      # JPA entity for job data
+│   │   │   ├── repository/
+│   │   │   │   └── JobRepo.java                   # JPA repository interface
+│   │   │   └── scraper/
+│   │   │       └── InfoparkScraper.java           # Infopark job portal scraper
 │   │   └── resources/
-│   │       └── application.properties
-│   ├── test/
-│   │   ├── java/                 # Unit and integration tests
-│   │   └── resources/            # Test configuration and fixtures
-├── pom.xml (Maven) or build.gradle (Gradle)
-├── README.md
-└── LICENSE
+│   │       └── application.properties             # Database and app configuration
+│   └── test/
+│       └── java/
+│           └── JobportalScraperApplicationTests.java
+├── pom.xml                                        # Maven dependencies and build config
+└── README.md
 ```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Java 8 or higher
-- Maven 3.6+ or Gradle 6.0+
+- Java 21 or higher
+- Maven 3.6+
+- MySQL 8.0+
 - Git
 
 ### Installation
@@ -90,76 +86,79 @@ Scrapper-java/
    cd Scrapper-java
    ```
 
-2. **Build the project**
+2. **Set up MySQL Database**
+   ```sql
+   CREATE DATABASE jobportal;
+   ```
+
+3. **Configure Database Connection**
    
-   Using Maven:
+   Update `src/main/resources/application.properties` with your MySQL credentials:
+   ```properties
+   spring.application.name=jobportal-scraper
+   spring.datasource.url=jdbc:mysql://127.0.0.1:3306/jobportal
+   spring.datasource.username=root
+   spring.datasource.password=your_password
+   spring.jpa.hibernate.ddl-auto=update
+   spring.jpa.show-sql=true
+   spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+   ```
+
+4. **Build the project**
    ```bash
    mvn clean install
    ```
-   
-   Using Gradle:
+
+5. **Run the application**
    ```bash
-   gradle build
+   mvn spring-boot:run
    ```
+   
+   The scraper will automatically run on startup and populate the database with job data.
 
-### Configuration
+## 📊 Data Model
 
-Create an `application.properties` file in `src/main/resources/` with your configuration:
+### Jobs Entity
 
-```properties
-# Job Portal Scraper Configuration
-scraper.timeout=30000
-scraper.retry.attempts=3
-scraper.delay.ms=1000
-scraper.user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+The `Jobs` JPA entity stores scraped job information with the following fields:
 
-# Logging Configuration
-logging.level=INFO
-```
+- `id` (Integer): Auto-generated primary key
+- `title` (String): Job title
+- `companyname` (String): Company name
+- `requirements` (String): Job requirements
+- `experience` (String): Required experience
+- `location` (String): Job location
+- `postedDate` (LocalDate): Date when job was posted
+- `deadline` (LocalDate): Application deadline
+- `applylink` (String): URL to apply for the job
 
-### Usage
+This data is stored in the `jobs` table in the MySQL database and can be accessed by the main Job Portal application.
 
-```java
-// Example usage (to be implemented)
-JobPortalScraper scraper = new JobPortalScraper();
-List<JobPosting> jobs = scraper.scrapeJobs("Java Developer", "India");
+## 🔄 How It Works
 
-for (JobPosting job : jobs) {
-    System.out.println(job.getTitle() + " at " + job.getCompany());
-}
-```
-
-## 📊 Data Models
-
-### JobPosting
-- `id`: Unique identifier
-- `title`: Job title
-- `company`: Company name
-- `location`: Job location
-- `description`: Job description
-- `salary`: Salary information
-- `jobType`: Full-time, Part-time, Contract, etc.
-- `postedDate`: Publication date
-- `applyUrl`: Application URL
-- `source`: Portal source
+1. **Application Starts**: The Spring Boot application starts and initializes the `InfoparkScraper` component
+2. **Scraper Executes**: The scraper connects to Infopark's job search page using Jsoup
+3. **Data Extraction**: Job details are extracted from the HTML table structure
+4. **Database Storage**: Each job is saved to the MySQL database via Spring Data JPA
+5. **Job Portal Access**: The main Job Portal application queries this database to display jobs to users
 
 ## 🧪 Testing
 
-Run tests using:
+Run tests using Maven:
 
 ```bash
 mvn test
 ```
 
-or with Gradle:
+## 🔮 Future Enhancements
 
-```bash
-gradle test
-```
-
-## 📝 API Documentation
-
-*(To be updated as API is developed)*
+- Add more job portal scrapers (Naukri, LinkedIn, Indeed, etc.)
+- Implement scheduling for periodic scraping (Spring @Scheduled)
+- Add duplicate job detection
+- Implement error notifications
+- Add REST API endpoints for manual scraping triggers
+- Enhance data validation and sanitization
+- Add support for job categories and tags
 
 ## 🤝 Contributing
 
@@ -194,14 +193,15 @@ For issues, questions, or suggestions, please open an issue on the GitHub reposi
 
 ## 📚 Additional Resources
 
+- [Spring Boot Documentation](https://spring.io/projects/spring-boot)
 - [Jsoup Documentation](https://jsoup.org/)
-- [OkHttp Documentation](https://square.github.io/okhttp/)
-- [Java Web Scraping Best Practices](https://www.geeksforgeeks.org/web-scraping-using-java/)
+- [Spring Data JPA Documentation](https://spring.io/projects/spring-data-jpa)
+- [MySQL Documentation](https://dev.mysql.com/doc/)
 
 ---
 
-**Last Updated**: December 16, 2025
+**Last Updated**: December 16, 2024
 
-**Status**: 🟡 In Active Development
+**Status**: 🟢 Active - Core functionality implemented
 
-For the latest updates and progress, check the [Issues](https://github.com/Akhil-vk18/Scrapper-java/issues) and [Pull Requests](https://github.com/Akhil-vk18/Scrapper-java/pulls) pages.
+This scraper is a sub-project of the larger Job Portal application ecosystem. For the main Job Portal repository, please visit the parent project.
